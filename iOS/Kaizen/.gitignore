@@ -1,0 +1,44 @@
+# Xcode
+.DS_Store
+build/
+DerivedData/
+*.xcodeproj/*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+PackageManager/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Generated files
+*.log
+*.swiftpm
+*.xcuserstate
+*.xcworkspace
+xcuserdata/
+
+# IDE-specific
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# Miscellaneous
+*.localized
+*.lock
+*.zip
+*.gz
+
+# Custom exclusions
+*.swp
+*.swo
+
+.sentryclirc
+.sentry.env
+Secrets.plist
