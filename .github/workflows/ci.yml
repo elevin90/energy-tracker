@@ -41,7 +41,9 @@ jobs:
           xcrun simctl delete unavailable || true
 
           # Create devices
-          PHONE_ID=$(xcrun simctl create "CI_iPhone" "iPhone 17")
+          RUNTIME=$(xcrun simctl list runtimes | grep "iOS" | tail -1 | awk -F '[()]' '{print $2}')
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17"
+          PHONE_ID=$(xcrun simctl create "CI_iPhone" $DEVICE_TYPE $RUNTIME)
           WATCH_ID=$(xcrun simctl create "CI_Watch" "Apple Watch Series 9 (45mm)")
 
           # Pair
@@ -61,6 +63,7 @@ jobs:
             -scheme Kaizen \
             -destination "platform=iOS Simulator,id=$PHONE_ID" \
             -only-testing:KaizenTests \
+            -skip-testing:KaizenUITests \
             -derivedDataPath build \
             test
 
