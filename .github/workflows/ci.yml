@@ -1,0 +1,89 @@
+name: CI
+
+on: 
+  pull_request:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+      android: ${{ steps.filter.outputs.android }}
+      backend: ${{ steps.filter.outputs.backend }}
+      kmp: ${{ steps.filter.outputs.kmp }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: | 
+            ios:
+              - 'ios/**'
+            android:
+              - 'android/**'
+            backend:
+              - 'backend/**'
+            kmp:
+              - 'kmp/**'
+
+  ios:
+    name: iOS Build
+    needs: changes
+    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.kmp == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build iOS
+        run: |
+          # Cleanup
+          xcrun simctl delete unavailable || true
+
+          # Create devices
+          PHONE_ID=$(xcrun simctl create "CI_iPhone" "iPhone 17")
+          WATCH_ID=$(xcrun simctl create "CI_Watch" "Apple Watch Series 9 (45mm)")
+
+          # Pair
+          xcrun simctl pair $WATCH_ID $PHONE_ID
+
+          # Boot
+          xcrun simctl boot $PHONE_ID
+          xcrun simctl boot $WATCH_ID || true
+
+          # Wait until ready
+          xcrun simctl bootstatus $PHONE_ID -b
+
+          # Build & test
+          cd iOS/Kaizen && \
+          xcodebuild \
+            -project Kaizen.xcodeproj \
+            -scheme Kaizen \
+            -destination "platform=iOS Simulator,id=$PHONE_ID" \
+            -only-testing:KaizenTests \
+            -derivedDataPath build \
+            test
+
+  android:
+    name: Android Build
+    needs: changes
+    if: needs.changes.outputs.android == 'true' || needs.changes.outputs.kmp == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Android
+        run: |
+          cd android/Kaizen
+          chmod +x gradlew
+          ./gradlew build
+
+  backend:
+    name: Backend Tests
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backend tests
+        run: |
+          cd backend && swift test
