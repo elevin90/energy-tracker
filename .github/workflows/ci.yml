@@ -56,6 +56,7 @@ jobs:
 
           if [ -z "$IOS_RUNTIME" ] || [ -z "$WATCH_RUNTIME" ]; then
             echo"🔴 Error: Could not find runtime device"
+          fi
 
           # Get the latest available iOS runtime identifier (not version number!)
           # IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[]" grep "iOS" | grep -Eo "com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+" | tail -1)
