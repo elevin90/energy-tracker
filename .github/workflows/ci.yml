@@ -19,11 +19,11 @@ jobs:
         with:
           filters: | 
             ios:
-              - 'ios/**'
+              - 'iOS/**'
             android:
-              - 'android/**'
+              - 'Android/**'
             backend:
-              - 'backend/**'
+              - 'Backend/**'
             kmp:
               - 'kmp/**'
 
