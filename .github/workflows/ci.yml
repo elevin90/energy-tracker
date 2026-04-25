@@ -37,26 +37,57 @@ jobs:
 
       - name: Build iOS
         run: |
-          # Cleanup
+          # Cleanup unavailable simulators to avoid conflicts
           xcrun simctl delete unavailable || true
 
-          # Create devices
-          RUNTIME=$(xcrun simctl list runtimes | grep "iOS" | tail -1 | awk -F '[()]' '{print $2}')
-          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17"
-          PHONE_ID=$(xcrun simctl create "CI_iPhone" $DEVICE_TYPE $RUNTIME)
-          WATCH_ID=$(xcrun simctl create "CI_Watch" "Apple Watch Series 9 (45mm)")
+          echo "=== Available runtimes ==="
+          xcrun simctl list runtimes
 
-          # Pair
+          echo "=== Available device types ==="
+          xcrun simctl list devicetypes
+
+          # Get the latest available iOS runtime identifier (not version number!)
+          IOS_RUNTIME=$(xcrun simctl list runtimes | grep "iOS" | grep -Eo "com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+" | tail -1)
+
+          # Get the latest available watchOS runtime identifier
+          WATCH_RUNTIME=$(xcrun simctl list runtimes | grep "watchOS" | grep -Eo "com.apple.CoreSimulator.SimRuntime.watchOS-[0-9-]+" | tail -1)
+
+          echo "iOS runtime: $IOS_RUNTIME"
+          echo "watchOS runtime: $WATCH_RUNTIME"
+
+          # Use stable device types that are guaranteed to exist on CI runners
+          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+          WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
+
+          # Create simulator devices
+          PHONE_ID=$(xcrun simctl create "CI_iPhone" $PHONE_TYPE $IOS_RUNTIME)
+          WATCH_ID=$(xcrun simctl create "CI_Watch" $WATCH_TYPE $WATCH_RUNTIME)
+
+          echo "PHONE_ID=$PHONE_ID"
+          echo "WATCH_ID=$WATCH_ID"
+
+          # Validate that devices were created successfully
+          if [ -z "$PHONE_ID" ] || [ -z "$WATCH_ID" ]; then
+            echo "❌ Failed to create simulators"
+            exit 1
+          fi
+
+          # Pair Apple Watch with iPhone (required for WatchKit apps)
           xcrun simctl pair $WATCH_ID $PHONE_ID
 
-          # Boot
+          # Boot iPhone first (required before booting paired watch)
           xcrun simctl boot $PHONE_ID
+
+          # Boot watch (may fail silently if already booted, that's fine)
           xcrun simctl boot $WATCH_ID || true
 
-          # Wait until ready
+          # Wait until iPhone simulator is fully booted
           xcrun simctl bootstatus $PHONE_ID -b
 
-          # Build & test
+          # Debug: print all available devices
+          xcrun simctl list devices
+
+          # Build and run tests on the specific simulator
           cd iOS/Kaizen && \
           xcodebuild \
             -project Kaizen.xcodeproj \
