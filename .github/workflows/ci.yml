@@ -37,6 +37,7 @@ jobs:
 
       - name: Build iOS
         run: |
+         run: |
           # Cleanup unavailable simulators to avoid conflicts
           xcrun simctl delete unavailable || true
 
@@ -51,23 +52,17 @@ jobs:
 
           echo "====== Runtime device selection ======="
 
-          IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS $TARGET_IOS\")) | .identifier" | sort -V | tail -n 1) 
-          WATCH_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"watchOS $TARGET_WATCH\")) | .identifier" | sort -V | tail -n 1) echo "Selected iOS runtime: $IOS_RUNTIME" echo "Selected watchOS runtime: $WATCH_RUNTIME"
+          IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS $TARGET_IOS\")) | .identifier" | sort -V | tail -n 1)
+          WATCH_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"watchOS $TARGET_WATCH\")) | .identifier" | sort -V | tail -n 1)
+
+          echo "Selected iOS runtime: $IOS_RUNTIME"
+          echo "Selected watchOS runtime: $WATCH_RUNTIME"
 
           if [ -z "$IOS_RUNTIME" ] || [ -z "$WATCH_RUNTIME" ]; then
-            echo"🔴 Error: Could not find runtime device"
+            echo "🔴 Error: Could not find runtime device"
+            exit 1
           fi
 
-          # Get the latest available iOS runtime identifier (not version number!)
-          # IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[]" grep "iOS" | grep -Eo "com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+" | tail -1)
-
-          # Get the latest available watchOS runtime identifier
-          # WATCH_RUNTIME=$(xcrun simctl list runtimes | grep "watchOS" | grep -Eo "com.apple.CoreSimulator.SimRuntime.watchOS-[0-9-]+" | tail -1)
-
-          echo "iOS runtime: $IOS_RUNTIME"
-          echo "watchOS runtime: $WATCH_RUNTIME"
-
-          # Use stable device types that are guaranteed to exist on CI runners
           PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
           WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
 
@@ -84,13 +79,13 @@ jobs:
             exit 1
           fi
 
-          # Pair Apple Watch with iPhone (required for WatchKit apps)
+          # Pair Apple Watch with iPhone
           xcrun simctl pair $WATCH_ID $PHONE_ID
 
-          # Boot iPhone first (required before booting paired watch)
+          # Boot iPhone first
           xcrun simctl boot $PHONE_ID
 
-          # Boot watch (may fail silently if already booted, that's fine)
+          # Boot watch
           xcrun simctl boot $WATCH_ID || true
 
           # Wait until iPhone simulator is fully booted
