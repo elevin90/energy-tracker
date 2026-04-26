@@ -86,7 +86,7 @@ jobs:
           xcodebuild \
             -project Kaizen.xcodeproj \
             -scheme Kaizen \
-            -destination "generic/platform=iOS Simulator" \
+            -destination "generic/platform=iOS" \
             -archivePath build/Kaizen.xcarchive \
             archive
 
