@@ -41,9 +41,9 @@ jobs:
           path: |
             iOS/Kaizen/build
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-ios-${{ hashFiles('**/*.swift') }}
+          key: ${{ runner.os }}-ios-cache-v1
           restore-keys: |
-            ${{ runner.os }}-ios-
+            ${{ runner.os }}-ios-cache-
 
       - name: Build iOS
         run: |
