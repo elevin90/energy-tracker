@@ -25,9 +25,9 @@ jobs:
             backend:
               - 'Backend/**'
             kmp:
-              - 'kmp/**'
-  ios-build:
-    name: iOS Build (Build-for-testing)
+              - 'kmp/**'  
+  ios:
+    name: iOS Build & Test (fast)
     needs: changes
     if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.kmp == 'true'
     runs-on: macos-latest
@@ -45,82 +45,42 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: |
-            iOS/Kaizen/build
-          key: ${{ runner.os }}-ios-cache-v1
-          restore-keys: |
-            ${{ runner.os }}-ios-cache-
-
-      - name: Build iOS
+      - name: Build & Test iOS
         run: |
           set -e
 
-          # Cleanup unavailable simulators
+          # Clean bad simulators
           xcrun simctl delete unavailable || true
 
           TARGET_IOS="18"
           TARGET_WATCH="11"
 
-          echo "====== Runtime device selection ======="
-
           IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS $TARGET_IOS\")) | .identifier" | sort -V | tail -n 1)
           WATCH_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"watchOS $TARGET_WATCH\")) | .identifier" | sort -V | tail -n 1)
-
-          echo "Selected iOS runtime: $IOS_RUNTIME"
-          echo "Selected watchOS runtime: $WATCH_RUNTIME"
-
-          if [ -z "$IOS_RUNTIME" ] || [ -z "$WATCH_RUNTIME" ]; then
-            echo "❌ Error: Could not find runtimes"
-            exit 1
-          fi
 
           PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
           WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
 
-          # Create simulators
           PHONE_ID=$(xcrun simctl create "CI_iPhone" $PHONE_TYPE $IOS_RUNTIME)
           WATCH_ID=$(xcrun simctl create "CI_Watch" $WATCH_TYPE $WATCH_RUNTIME)
 
-          echo "PHONE_ID=$PHONE_ID"
-          echo "WATCH_ID=$WATCH_ID"
-
-          if [ -z "$PHONE_ID" ] || [ -z "$WATCH_ID" ]; then
-            echo "❌ Failed to create simulators"
-            exit 1
-          fi
-
-          # Pair devices
           xcrun simctl pair $WATCH_ID $PHONE_ID
 
-          # Boot devices
           xcrun simctl boot $PHONE_ID
           xcrun simctl boot $WATCH_ID || true
 
-          # Wait until iPhone and Watch simulators are fully booted
           xcrun simctl bootstatus $PHONE_ID -b
           xcrun simctl bootstatus $WATCH_ID -b || true
 
-          # Debug devices
-          xcrun simctl list devices
-
-          # Build only
           cd iOS/Kaizen
 
           xcodebuild \
             -project Kaizen.xcodeproj \
             -scheme Kaizen \
             -destination "platform=iOS Simulator,id=$PHONE_ID" \
-            -derivedDataPath build \
-            build-for-testing
-
-          # Cleanup simulators
-          xcrun simctl shutdown $PHONE_ID || true
-          xcrun simctl shutdown $WATCH_ID || true
-          xcrun simctl delete $PHONE_ID || true
-          xcrun simctl delete $WATCH_ID || true
+            -parallel-testing-enabled YES \
+            -only-testing:KaizenTests \
+            test
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -136,6 +96,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Build Android
         run: |
           cd Android/Kaizen
@@ -152,47 +122,3 @@ jobs:
       - name: Run backend tests
         run: |
           cd Backend && swift test
-
-  ios-test:
-    name: iOS Tests
-    needs: ios-build
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-build
-          path: iOS/Kaizen/build
-
-      - name: Setup simulator
-        run: |
-          set -e
-          xcrun simctl delete unavailable || true
-
-          IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS 18\")) | .identifier" | sort -V | tail -n 1)
-          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
-
-          PHONE_ID=$(xcrun simctl create "CI_iPhone_Test" $PHONE_TYPE $IOS_RUNTIME)
-
-          xcrun simctl boot $PHONE_ID
-          xcrun simctl bootstatus $PHONE_ID -b
-
-          echo "PHONE_ID=$PHONE_ID" >> $GITHUB_ENV
-
-      - name: Run tests
-        run: |
-          cd iOS/Kaizen
-
-          xcodebuild \
-            -project Kaizen.xcodeproj \
-            -scheme Kaizen \
-            -destination "platform=iOS Simulator,id=$PHONE_ID" \
-            -parallel-testing-enabled YES \
-            -enableCodeCoverage YES \
-            -only-testing:KaizenTests \
-            -skip-testing:KaizenUITests \
-            -derivedDataPath build \
-            test-without-building
