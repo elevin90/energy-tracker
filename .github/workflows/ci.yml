@@ -26,19 +26,30 @@ jobs:
               - 'Backend/**'
             kmp:
               - 'kmp/**'
-
   ios:
     name: iOS Build
     needs: changes
     if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.kmp == 'true'
     runs-on: macos-latest
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: |
+            iOS/Kaizen/build
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-ios-${{ hashFiles('**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-
+
       - name: Build iOS
         run: |
-         run: |
-          # Cleanup unavailable simulators to avoid conflicts
+          set -e
+
+          # Cleanup unavailable simulators
           xcrun simctl delete unavailable || true
 
           echo "=== Available runtimes ==="
@@ -59,51 +70,66 @@ jobs:
           echo "Selected watchOS runtime: $WATCH_RUNTIME"
 
           if [ -z "$IOS_RUNTIME" ] || [ -z "$WATCH_RUNTIME" ]; then
-            echo "🔴 Error: Could not find runtime device"
+            echo "❌ Error: Could not find runtimes"
             exit 1
           fi
 
           PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
           WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
 
-          # Create simulator devices
+          # Create simulators
           PHONE_ID=$(xcrun simctl create "CI_iPhone" $PHONE_TYPE $IOS_RUNTIME)
           WATCH_ID=$(xcrun simctl create "CI_Watch" $WATCH_TYPE $WATCH_RUNTIME)
 
           echo "PHONE_ID=$PHONE_ID"
           echo "WATCH_ID=$WATCH_ID"
 
-          # Validate that devices were created successfully
           if [ -z "$PHONE_ID" ] || [ -z "$WATCH_ID" ]; then
             echo "❌ Failed to create simulators"
             exit 1
           fi
 
-          # Pair Apple Watch with iPhone
+          # Pair devices
           xcrun simctl pair $WATCH_ID $PHONE_ID
 
-          # Boot iPhone first
+          # Boot devices
           xcrun simctl boot $PHONE_ID
-
-          # Boot watch
           xcrun simctl boot $WATCH_ID || true
 
-          # Wait until iPhone simulator is fully booted
+          # Wait until iPhone and Watch simulators are fully booted
           xcrun simctl bootstatus $PHONE_ID -b
+          xcrun simctl bootstatus $WATCH_ID -b || true
 
-          # Debug: print all available devices
+          # Debug devices
           xcrun simctl list devices
 
-          # Build and run tests on the specific simulator
-          cd iOS/Kaizen && \
+          # Build & test
+          cd iOS/Kaizen
+
           xcodebuild \
             -project Kaizen.xcodeproj \
             -scheme Kaizen \
             -destination "platform=iOS Simulator,id=$PHONE_ID" \
+            -derivedDataPath build \
+            build-for-testing
+
+          xcodebuild \
+            -project Kaizen.xcodeproj \
+            -scheme Kaizen \
+            -destination "platform=iOS Simulator,id=$PHONE_ID" \
+            -parallel-testing-enabled YES \
+            -enableCodeCoverage YES \
             -only-testing:KaizenTests \
             -skip-testing:KaizenUITests \
             -derivedDataPath build \
-            test
+            test-without-building
+
+          # Cleanup simulators
+          xcrun simctl shutdown $PHONE_ID || true
+          xcrun simctl shutdown $WATCH_ID || true
+          xcrun simctl delete $PHONE_ID || true
+          xcrun simctl delete $WATCH_ID || true
+
 
   android:
     name: Android Build
