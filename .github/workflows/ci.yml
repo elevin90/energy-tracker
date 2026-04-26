@@ -26,8 +26,8 @@ jobs:
               - 'Backend/**'
             kmp:
               - 'kmp/**'
-  ios:
-    name: iOS Build
+  ios-build:
+    name: iOS Build (Build-for-testing)
     needs: changes
     if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.kmp == 'true'
     runs-on: macos-latest
@@ -35,12 +35,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache Swift Packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
           path: |
             iOS/Kaizen/build
-            ~/Library/Developer/Xcode/DerivedData
           key: ${{ runner.os }}-ios-cache-v1
           restore-keys: |
             ${{ runner.os }}-ios-cache-
@@ -51,12 +60,6 @@ jobs:
 
           # Cleanup unavailable simulators
           xcrun simctl delete unavailable || true
-
-          echo "=== Available runtimes ==="
-          xcrun simctl list runtimes
-
-          echo "=== Available device types ==="
-          xcrun simctl list devicetypes
 
           TARGET_IOS="18"
           TARGET_WATCH="11"
@@ -103,7 +106,7 @@ jobs:
           # Debug devices
           xcrun simctl list devices
 
-          # Build & test
+          # Build only
           cd iOS/Kaizen
 
           xcodebuild \
@@ -113,22 +116,17 @@ jobs:
             -derivedDataPath build \
             build-for-testing
 
-          xcodebuild \
-            -project Kaizen.xcodeproj \
-            -scheme Kaizen \
-            -destination "platform=iOS Simulator,id=$PHONE_ID" \
-            -parallel-testing-enabled YES \
-            -enableCodeCoverage YES \
-            -only-testing:KaizenTests \
-            -skip-testing:KaizenUITests \
-            -derivedDataPath build \
-            test-without-building
-
           # Cleanup simulators
           xcrun simctl shutdown $PHONE_ID || true
           xcrun simctl shutdown $WATCH_ID || true
           xcrun simctl delete $PHONE_ID || true
           xcrun simctl delete $WATCH_ID || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: iOS/Kaizen/build
 
 
   android:
@@ -154,3 +152,47 @@ jobs:
       - name: Run backend tests
         run: |
           cd Backend && swift test
+
+  ios-test:
+    name: iOS Tests
+    needs: ios-build
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-build
+          path: iOS/Kaizen/build
+
+      - name: Setup simulator
+        run: |
+          set -e
+          xcrun simctl delete unavailable || true
+
+          IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS 18\")) | .identifier" | sort -V | tail -n 1)
+          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+
+          PHONE_ID=$(xcrun simctl create "CI_iPhone_Test" $PHONE_TYPE $IOS_RUNTIME)
+
+          xcrun simctl boot $PHONE_ID
+          xcrun simctl bootstatus $PHONE_ID -b
+
+          echo "PHONE_ID=$PHONE_ID" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: |
+          cd iOS/Kaizen
+
+          xcodebuild \
+            -project Kaizen.xcodeproj \
+            -scheme Kaizen \
+            -destination "platform=iOS Simulator,id=$PHONE_ID" \
+            -parallel-testing-enabled YES \
+            -enableCodeCoverage YES \
+            -only-testing:KaizenTests \
+            -skip-testing:KaizenUITests \
+            -derivedDataPath build \
+            test-without-building
