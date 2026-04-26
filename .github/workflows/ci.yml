@@ -82,12 +82,34 @@ jobs:
             -only-testing:KaizenTests \
             test
 
-      - name: Upload build artifacts
+          # Archive app
+          xcodebuild \
+            -project Kaizen.xcodeproj \
+            -scheme Kaizen \
+            -destination "generic/platform=iOS Simulator" \
+            -archivePath build/Kaizen.xcarchive \
+            archive
+
+          # Create export options plist
+          cat > ExportOptions.plist <<EOF
+          {
+            "method": "development",
+            "signingStyle": "automatic",
+            "compileBitcode": false
+          }
+          EOF
+
+          # Export IPA
+          xcodebuild -exportArchive \
+            -archivePath build/Kaizen.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build
+
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: iOS/Kaizen/build
-
+          path: iOS/Kaizen/build/*.ipa
 
   android:
     name: Android Build
