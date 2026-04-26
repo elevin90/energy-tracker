@@ -1,0 +1,153 @@
+name: CI
+
+on: 
+  pull_request:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+      android: ${{ steps.filter.outputs.android }}
+      backend: ${{ steps.filter.outputs.backend }}
+      kmp: ${{ steps.filter.outputs.kmp }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: | 
+            ios:
+              - 'iOS/**'
+            android:
+              - 'Android/**'
+            backend:
+              - 'Backend/**'
+            kmp:
+              - 'kmp/**'  
+  ios:
+    name: iOS Build & Test (fast)
+    needs: changes
+    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.kmp == 'true'
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Swift Packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Build & Test iOS
+        run: |
+          set -e
+
+          # Clean bad simulators
+          xcrun simctl delete unavailable || true
+
+          TARGET_IOS="18"
+          TARGET_WATCH="11"
+
+          IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS $TARGET_IOS\")) | .identifier" | sort -V | tail -n 1)
+          WATCH_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"watchOS $TARGET_WATCH\")) | .identifier" | sort -V | tail -n 1)
+
+          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+          WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
+
+          PHONE_ID=$(xcrun simctl create "CI_iPhone" $PHONE_TYPE $IOS_RUNTIME)
+          WATCH_ID=$(xcrun simctl create "CI_Watch" $WATCH_TYPE $WATCH_RUNTIME)
+
+          xcrun simctl pair $WATCH_ID $PHONE_ID
+
+          xcrun simctl boot $PHONE_ID
+          xcrun simctl boot $WATCH_ID || true
+
+          xcrun simctl bootstatus $PHONE_ID -b
+          xcrun simctl bootstatus $WATCH_ID -b || true
+
+          cd iOS/Kaizen
+
+          xcodebuild \
+            -project Kaizen.xcodeproj \
+            -scheme Kaizen \
+            -destination "platform=iOS Simulator,id=$PHONE_ID" \
+            -parallel-testing-enabled YES \
+            -only-testing:KaizenTests \
+            test
+
+          # Archive app
+          # xcodebuild \
+          #  -project Kaizen.xcodeproj \
+          #  -scheme Kaizen \
+          #  -destination "generic/platform=iOS" \
+          #  -archivePath build/Kaizen.xcarchive \
+          #  archive
+
+          # Create export options plist
+          #cat > ExportOptions.plist <<EOF
+          #<?xml version="1.0" encoding="UTF-8"?>
+          #<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          #<plist version="1.0">
+          #<dict>
+              #<key>method</key>
+              #<string>development</string>
+              #<key>signingStyle</key>
+              #<string>automatic</string>
+              #<key>compileBitcode</key>
+              #<false/>
+          #</dict>
+          #</plist>
+          #EOF
+
+          # Export IPA
+          #xcodebuild -exportArchive \
+            #-archivePath build/Kaizen.xcarchive \
+            #-exportOptionsPlist ExportOptions.plist \
+            #-exportPath build
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: iOS/Kaizen/build/*.ipa
+
+  android:
+    name: Android Build
+    needs: changes
+    if: needs.changes.outputs.android == 'true' || needs.changes.outputs.kmp == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Android
+        run: |
+          cd Android/Kaizen
+          chmod +x gradlew
+          ./gradlew build
+
+  backend:
+    name: Backend Tests
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backend tests
+        run: |
+          cd Backend && swift test
