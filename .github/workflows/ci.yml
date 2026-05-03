@@ -26,6 +26,7 @@ jobs:
               - 'Backend/**'
             kmp:
               - 'kmp/**'  
+
   ios:
     name: iOS Build & Test (fast)
     needs: changes
@@ -60,20 +61,26 @@ jobs:
           TARGET_IOS="18"
           TARGET_WATCH="11"
 
+          # Dynamically find the latest runtimes
           IOS_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"iOS $TARGET_IOS\")) | .identifier" | sort -V | tail -n 1)
           WATCH_RUNTIME=$(xcrun simctl list runtimes --json | jq -r ".runtimes[] | select(.name | startswith(\"watchOS $TARGET_WATCH\")) | .identifier" | sort -V | tail -n 1)
 
-          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+          # Updated to iPhone-16 because iPhone-15 is removed from this runner image
+          PHONE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-16"
           WATCH_TYPE="com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
 
+          # Create devices
           PHONE_ID=$(xcrun simctl create "CI_iPhone" $PHONE_TYPE $IOS_RUNTIME)
           WATCH_ID=$(xcrun simctl create "CI_Watch" $WATCH_TYPE $WATCH_RUNTIME)
 
+          # Pair phone and watch
           xcrun simctl pair $WATCH_ID $PHONE_ID
 
+          # Boot simulators
           xcrun simctl boot $PHONE_ID
           xcrun simctl boot $WATCH_ID || true
 
+          # Wait for devices to finish booting
           xcrun simctl bootstatus $PHONE_ID -b
           xcrun simctl bootstatus $WATCH_ID -b || true
 
@@ -84,26 +91,28 @@ jobs:
           echo "$IOS_PROVISION_BASE64" | base64 --decode > app.mobileprovision
           echo "$IOS_PROVISION_WATCH_BASE64" | base64 --decode > watch.mobileprovision
 
-          # Создаем и подключаем keychain ПРАВИЛЬНО
+          # Create and link keychain properly
           security create-keychain -p "" build.keychain
           security list-keychains -d user -s build.keychain login.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          # Импортируем сертификат
+          # Import the certificate
           security import cert.p12 -k build.keychain -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign -A
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
 
-          # ДЕБАГ: Проверяем, что сертификат реально импортировался и валиден
+          # DEBUG: Verify identities in keychain
           echo "=== AVAILABLE IDENTITIES IN KEYCHAIN ==="
           security find-identity -v -p codesigning build.keychain
           echo "========================================"
 
+          # Copy provisioning profiles
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
           cp watch.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
+          # Run unit tests
           xcodebuild \
             -project Kaizen.xcodeproj \
             -scheme Kaizen \

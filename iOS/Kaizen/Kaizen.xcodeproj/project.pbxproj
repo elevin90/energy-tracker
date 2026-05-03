@@ -55,9 +55,27 @@
 		936CF5DF2F98216800BA6BE0 /* Kaizen-Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kaizen-Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		936A670E2FA7B78B0030F340 /* Exceptions for "Kaizen" folder in "Kaizen" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Configs/iOS/Debug.xcconfig,
+				Configs/iOS/Release.xcconfig,
+				Configs/iOS/Staging.xcconfig,
+				Configs/WatchOS/Debug.xcconfig,
+				Configs/WatchOS/Release.xcconfig,
+				Configs/WatchOS/Staging.xcconfig,
+			);
+			target = 936CF5B02F981D1400BA6BE0 /* Kaizen */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		936CF5B32F981D1400BA6BE0 /* Kaizen */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				936A670E2FA7B78B0030F340 /* Exceptions for "Kaizen" folder in "Kaizen" target */,
+			);
 			path = Kaizen;
 			sourceTree = "<group>";
 		};
@@ -359,7 +377,7 @@
 		936A66BE2FA54AE20030F340 /* Staging */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Staging.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Staging.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -415,7 +433,7 @@
 		936A66BF2FA54AE20030F340 /* Staging */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Staging.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Staging.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -429,6 +447,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -465,13 +484,14 @@
 		936A66C02FA54AE20030F340 /* Staging */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Staging.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Staging.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AABQB8S42;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -493,7 +513,7 @@
 		936A66C12FA54AE20030F340 /* Staging */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Staging.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Staging.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -519,6 +539,8 @@
 		};
 		936A66C22FA54AE20030F340 /* Staging */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
+			baseConfigurationReferenceRelativePath = Configs/WatchOS/Staging.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -529,9 +551,9 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = 6AABQB8S42;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Kaizen-Watch";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.YauheniLevin.Kaizen;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(INFOPLIST_KEY_WKCompanionAppBundleIdentifier)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -558,7 +580,7 @@
 		936CF5D02F981D1500BA6BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Debug.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Debug.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -622,7 +644,7 @@
 		936CF5D12F981D1500BA6BE0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Release.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Release.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -678,7 +700,7 @@
 		936CF5D32F981D1500BA6BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Debug.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Debug.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -690,6 +712,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -724,7 +747,7 @@
 		936CF5D42F981D1500BA6BE0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Release.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -738,6 +761,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -774,13 +798,14 @@
 		936CF5D62F981D1500BA6BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Debug.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Debug.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AABQB8S42;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -802,13 +827,14 @@
 		936CF5D72F981D1500BA6BE0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Release.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Release.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AABQB8S42;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -830,7 +856,7 @@
 		936CF5D92F981D1500BA6BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Debug.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Debug.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -857,7 +883,7 @@
 		936CF5DA2F981D1500BA6BE0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
-			baseConfigurationReferenceRelativePath = Configs/Release.xcconfig;
+			baseConfigurationReferenceRelativePath = Configs/iOS/Release.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -883,17 +909,20 @@
 		};
 		936CF5EB2F98216900BA6BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
+			baseConfigurationReferenceRelativePath = Configs/WatchOS/Debug.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AABQB8S42;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Kaizen-Watch";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.YauheniLevin.Kaizen;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(INFOPLIST_KEY_WKCompanionAppBundleIdentifier)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -901,6 +930,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.YauheniLevin.Kaizen.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -916,6 +946,8 @@
 		};
 		936CF5EC2F98216900BA6BE0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 936CF5B32F981D1400BA6BE0 /* Kaizen */;
+			baseConfigurationReferenceRelativePath = Configs/WatchOS/Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -926,9 +958,9 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = 6AABQB8S42;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Kaizen-Watch";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(DISPLAY_NAME)";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.YauheniLevin.Kaizen;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(INFOPLIST_KEY_WKCompanionAppBundleIdentifier)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
