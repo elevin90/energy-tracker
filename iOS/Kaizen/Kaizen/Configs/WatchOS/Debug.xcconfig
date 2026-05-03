@@ -1,0 +1,16 @@
+//
+//  Debug.xcconfig
+//  Kaizen-Watch Watch App
+//
+//  Created by Yauheni Levin on 03/05/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+
+#include "../iOS/Debug.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = com.YauheniLevin.Kaizen.watchkitapp
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+ENABLE_TESTABILITY = YES
+INFOPLIST_KEY_CFBundleDisplayName = $(DISPLAY_NAME)
+INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.YauheniLevin.Kaizen

@@ -1,0 +1,15 @@
+//
+//  Staging.xcconfig
+//  Kaizen-Watch Watch App
+//
+//  Created by Yauheni Levin on 03/05/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+
+#include "../iOS/Staging.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = com.YauheniLevin.Kaizen.staging.watchkitapp
+INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.YauheniLevin.Kaizen.staging
+
+INFOPLIST_KEY_CFBundleDisplayName = $(DISPLAY_NAME)

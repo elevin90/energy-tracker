@@ -1,0 +1,12 @@
+//
+//  Staging.xcconfig
+//  Kaizen
+//
+//  Created by Yauheni Levin on 02/05/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+//
+
+PRODUCT_BUNDLE_IDENTIFIER = com.YauheniLevin.Kaizen.staging
+DISPLAY_NAME = Kaizen Staging
