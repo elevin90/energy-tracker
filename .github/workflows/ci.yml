@@ -130,15 +130,15 @@ jobs:
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>ad-hoc</string>
+              <string>release-testing</string>
               <key>signingStyle</key>
               <string>manual</string>
               <key>provisioningProfiles</key>
               <dict>
                   <key>com.YauheniLevin.Kaizen.staging</key>
                   <string>Kaizen_stage_CI</string>
-                  <key>com.YauheniLevin.Kaizen.watchkitapp</key>
-                  <string>Profilekaizenwatchstage</string>
+                  <key>com.YauheniLevin.Kaizen.staging.watchkitapp</key>
+                  <string>Profile-kaizen-watch-stage</string>
               </dict>
           </dict>
           </plist>
