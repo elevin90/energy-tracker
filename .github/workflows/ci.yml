@@ -84,13 +84,21 @@ jobs:
           echo "$IOS_PROVISION_BASE64" | base64 --decode > app.mobileprovision
           echo "$IOS_PROVISION_WATCH_BASE64" | base64 --decode > watch.mobileprovision
 
+          # Создаем и подключаем keychain ПРАВИЛЬНО
           security create-keychain -p "" build.keychain
+          security list-keychains -d user -s build.keychain login.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          security import cert.p12 -k build.keychain -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          # Импортируем сертификат
+          security import cert.p12 -k build.keychain -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign -A
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+          # ДЕБАГ: Проверяем, что сертификат реально импортировался и валиден
+          echo "=== AVAILABLE IDENTITIES IN KEYCHAIN ==="
+          security find-identity -v -p codesigning build.keychain
+          echo "========================================"
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
